@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workout Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0e0f;
+      --surface: #161618;
+      --surface2: #1e1e21;
+      --border: rgba(255,255,255,0.07);
+      --text: #f0ede8;
+      --muted: #6b6a68;
+      --push: #e8825a;
+      --pull: #5ab8e8;
+      --legs: #7de882;
+      --push-dim: rgba(232,130,90,0.12);
+      --pull-dim: rgba(90,184,232,0.12);
+      --legs-dim: rgba(125,232,130,0.12);
+      --radius: 10px;
+      --font: 'DM Sans', sans-serif;
+      --mono: 'DM Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    header {
+      max-width: 1100px;
+      margin: 0 auto 2.5rem;
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.25rem;
+    }
+
+    header h1 {
+      font-size: 1.1rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-family: var(--mono);
+    }
+
+    header span {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    /* Metric row */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 2.5rem;
+    }
+
+    .metric {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.2rem;
+    }
+
+    .metric-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-family: var(--mono);
+      margin-bottom: 0.4rem;
+    }
+
+    .metric-value {
+      font-size: 1.9rem;
+      font-weight: 300;
+      font-family: var(--mono);
+      line-height: 1;
+    }
+
+    .metric-sub {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
+    /* Section headers */
+    .section-header {
+      font-size: 0.7rem;
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+      margin-top: 2.5rem;
+    }
+
+    /* Consistency chart */
+    .consistency-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .consistency-inner {
+      position: relative;
+      height: 200px;
+    }
+
+    /* Category tabs */
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 1.5rem;
+      margin-top: 2.5rem;
+    }
+
+    .tab {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 6px 16px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .tab:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+    .tab.active-push { background: var(--push-dim); border-color: var(--push); color: var(--push); }
+    .tab.active-pull { background: var(--pull-dim); border-color: var(--pull); color: var(--pull); }
+    .tab.active-legs { background: var(--legs-dim); border-color: var(--legs); color: var(--legs); }
+
+    /* Exercise grid */
+    .ex-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 12px;
+    }
+
+    .ex-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.2rem 1.2rem;
+    }
+
+    .ex-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.9rem;
+    }
+
+    .ex-card-name {
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+
+    .ex-card-meta {
+      font-size: 0.68rem;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+
+    .ex-card-chart {
+      position: relative;
+      height: 110px;
+    }
+
+    .ex-card-best {
+      margin-top: 0.6rem;
+      font-size: 0.68rem;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+
+    .ex-card-best span {
+      font-weight: 500;
+    }
+
+    .push-accent .ex-card-name { color: var(--push); }
+    .pull-accent .ex-card-name { color: var(--pull); }
+    .legs-accent .ex-card-name { color: var(--legs); }
+
+    /* Loading */
+    #loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 60vh;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    #app { display: none; }
+
+    @media (max-width: 600px) {
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+      .ex-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">Lade Workouts...</div>
+  <div id="app">
+    <header>
+      <h1>Workout</h1>
+      <span id="header-range">–</span>
+    </header>
+
+    <div class="container">
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">Sessions</div>
+          <div class="metric-value" id="m-sessions">–</div>
+          <div class="metric-sub">Workouts gesamt</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Streak</div>
+          <div class="metric-value" id="m-streak">–</div>
+          <div class="metric-sub">Tage am Stück</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Übungen</div>
+          <div class="metric-value" id="m-exercises">–</div>
+          <div class="metric-sub">verschiedene</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Letztes</div>
+          <div class="metric-value" id="m-last" style="font-size:1.1rem; padding-top:0.4rem;">–</div>
+          <div class="metric-sub" id="m-last-type">–</div>
+        </div>
+      </div>
+
+      <div class="section-header">Consistency – Workouts pro Woche</div>
+      <div class="consistency-wrap">
+        <div class="consistency-inner">
+          <canvas id="consistency-chart" role="img" aria-label="Balkendiagramm Workouts pro Woche aufgeteilt in Push Pull Legs"></canvas>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active-push" data-cat="push" onclick="showCat('push')">Push</button>
+        <button class="tab" data-cat="pull" onclick="showCat('pull')">Pull</button>
+        <button class="tab" data-cat="legs" onclick="showCat('legs')">Legs</button>
+      </div>
+
+      <div class="ex-grid" id="ex-grid"></div>
+    </div>
+  </div>
+
+  <script>
+    // ── CSV parser ──────────────────────────────────────────────────────────
+    function parseCSV(text) {
+      const lines = text.trim().split('\n').slice(1);
+      const rows = [];
+      for (const line of lines) {
+        const cols = [];
+        let cur = '', inQ = false;
+        for (const ch of line) {
+          if (ch === '"') inQ = !inQ;
+          else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+          else cur += ch;
+        }
+        cols.push(cur.trim());
+        const setVal = (cols[4] || '').replace(/"/g, '').trim();
+        if (setVal === 'Ruhezeit' || setVal === '') continue;
+        const exercise = (cols[3] || '').replace(/"/g, '').trim();
+        if (!exercise) continue;
+        rows.push({
+          date: (cols[0] || '').split(' ')[0],
+          workout: (cols[1] || '').replace(/"/g, '').trim().toUpperCase(),
+          exercise,
+          weight: parseFloat(cols[5]) || 0,
+          reps: parseFloat(cols[6]) || 0,
+          secs: parseFloat(cols[8]) || 0,
+        });
+      }
+      return rows;
+    }
+
+    // ── Category normalizer ─────────────────────────────────────────────────
+    function getCat(workout) {
+      const w = workout.toUpperCase();
+      if (w.includes('PUSH')) return 'push';
+      if (w.includes('PULL')) return 'pull';
+      if (w.includes('LEG') || w.includes('LEGS')) return 'legs';
+      return 'other';
+    }
+
+    // ── Week key (Monday-based) ─────────────────────────────────────────────
+    function weekKey(dateStr) {
+      const d = new Date(dateStr);
+      const day = d.getDay() === 0 ? 6 : d.getDay() - 1;
+      const mon = new Date(d);
+      mon.setDate(d.getDate() - day);
+      return mon.toISOString().split('T')[0];
+    }
+
+    // ── Color helpers ───────────────────────────────────────────────────────
+    const COLORS = { push: '#e8825a', pull: '#5ab8e8', legs: '#7de882', other: '#888' };
+    const DIM    = { push: 'rgba(232,130,90,0.15)', pull: 'rgba(90,184,232,0.15)', legs: 'rgba(125,232,130,0.15)', other: 'rgba(136,136,136,0.15)' };
+
+    // ── Chart defaults ──────────────────────────────────────────────────────
+    Chart.defaults.color = '#6b6a68';
+    Chart.defaults.font.family = "'DM Mono', monospace";
+    Chart.defaults.font.size = 10;
+
+    // ── Exercise chart registry (destroy on re-render) ──────────────────────
+    const chartRegistry = {};
+
+    function destroyChart(id) {
+      if (chartRegistry[id]) { chartRegistry[id].destroy(); delete chartRegistry[id]; }
+    }
+
+    // ── Main ────────────────────────────────────────────────────────────────
+    async function init() {
+      let text;
+      try {
+        const res = await fetch('strong_workouts.csv');
+        text = await res.text();
+      } catch(e) {
+        document.getElementById('loading').textContent = 'Fehler: strong_workouts.csv nicht gefunden.';
+        return;
+      }
+
+      const rows = parseCSV(text);
+
+      // Sessions per day (unique date+workout combos)
+      const sessionSet = new Set(rows.map(r => r.date + '|' + r.workout));
+      const sessions = [...sessionSet].map(s => ({ date: s.split('|')[0], workout: s.split('|')[1] }));
+
+      // Metrics
+      document.getElementById('m-sessions').textContent = sessions.length;
+      document.getElementById('m-exercises').textContent = new Set(rows.map(r => r.exercise)).size;
+
+      // Streak
+      const days = [...new Set(sessions.map(s => s.date))].sort();
+      let streak = 0, maxStreak = 0, cur = 0;
+      for (let i = 0; i < days.length; i++) {
+        if (i === 0) { cur = 1; }
+        else {
+          const prev = new Date(days[i-1]), now = new Date(days[i]);
+          const diff = (now - prev) / 86400000;
+          cur = diff === 1 ? cur + 1 : 1;
+        }
+        maxStreak = Math.max(maxStreak, cur);
+      }
+      // Current streak
+      const today = new Date().toISOString().split('T')[0];
+      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+      const lastDay = days[days.length - 1];
+      if (lastDay === today || lastDay === yesterday) {
+        let cs = 1;
+        for (let i = days.length - 2; i >= 0; i--) {
+          const a = new Date(days[i+1]), b = new Date(days[i]);
+          if ((a - b) / 86400000 === 1) cs++;
+          else break;
+        }
+        streak = cs;
+      }
+      document.getElementById('m-streak').textContent = streak || maxStreak;
+
+      // Last workout
+      const lastSession = sessions[sessions.length - 1];
+      if (lastSession) {
+        const d = new Date(lastSession.date);
+        document.getElementById('m-last').textContent = d.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
+        document.getElementById('m-last-type').textContent = lastSession.workout;
+      }
+
+      // Header range
+      if (days.length >= 2) {
+        const from = new Date(days[0]).toLocaleDateString('de-DE', { month: 'short', year: '2-digit' });
+        const to   = new Date(days[days.length-1]).toLocaleDateString('de-DE', { month: 'short', year: '2-digit' });
+        document.getElementById('header-range').textContent = from + ' – ' + to;
+      }
+
+      // ── Consistency chart (stacked bars per week) ─────────────────────────
+      const weekMap = {};
+      sessions.forEach(s => {
+        const wk = weekKey(s.date);
+        if (!weekMap[wk]) weekMap[wk] = { push: 0, pull: 0, legs: 0, other: 0 };
+        weekMap[wk][getCat(s.workout)]++;
+      });
+
+      const weeks = Object.keys(weekMap).sort();
+      const wLabels = weeks.map(w => {
+        const d = new Date(w);
+        return d.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
+      });
+
+      const cCtx = document.getElementById('consistency-chart').getContext('2d');
+      new Chart(cCtx, {
+        type: 'bar',
+        data: {
+          labels: wLabels,
+          datasets: [
+            { label: 'Push', data: weeks.map(w => weekMap[w].push), backgroundColor: '#e8825a', borderRadius: 3, stack: 'a' },
+            { label: 'Pull', data: weeks.map(w => weekMap[w].pull), backgroundColor: '#5ab8e8', borderRadius: 3, stack: 'a' },
+            { label: 'Legs', data: weeks.map(w => weekMap[w].legs), backgroundColor: '#7de882', borderRadius: 3, stack: 'a' },
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              align: 'end',
+              labels: { boxWidth: 10, boxHeight: 10, borderRadius: 3, useBorderRadius: true, padding: 16, font: { size: 10 } }
+            },
+            tooltip: { mode: 'index' }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { autoSkip: true, maxTicksLimit: 14, maxRotation: 0 } },
+            y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.04)' } }
+          }
+        }
+      });
+
+      // ── Exercise data by category ─────────────────────────────────────────
+      window._allRows = rows;
+      showCat('push');
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    }
+
+    // ── Render exercise cards for a category ───────────────────────────────
+    function showCat(cat) {
+      // Update tabs
+      document.querySelectorAll('.tab').forEach(t => {
+        t.className = 'tab';
+        if (t.dataset.cat === cat) t.classList.add('active-' + cat);
+      });
+
+      const rows = window._allRows;
+      const catRows = rows.filter(r => getCat(r.workout) === cat);
+
+      // Group by exercise
+      const exMap = {};
+      catRows.forEach(r => {
+        if (!exMap[r.exercise]) exMap[r.exercise] = [];
+        exMap[r.exercise].push(r);
+      });
+
+      const grid = document.getElementById('ex-grid');
+      grid.innerHTML = '';
+
+      // Destroy old charts
+      Object.keys(chartRegistry).forEach(destroyChart);
+
+      const isTime = name => name.toLowerCase().includes('zeit') || name.toLowerCase().includes('time') || name.toLowerCase().includes('hang') || name.toLowerCase().includes('dauer');
+
+      Object.entries(exMap).sort((a, b) => b[1].length - a[1].length).forEach(([name, exRows]) => {
+        const useTime = isTime(name) || (exRows.every(r => r.reps === 0) && exRows.some(r => r.secs > 0));
+        const metric = r => useTime ? r.secs : r.reps;
+        const unit = useTime ? 's' : 'Wdh';
+
+        // Group by date: take max metric per date
+        const byDate = {};
+        exRows.forEach(r => {
+          const v = metric(r);
+          if (v <= 0) return;
+          if (!byDate[r.date] || v > byDate[r.date]) byDate[r.date] = v;
+        });
+
+        const dates = Object.keys(byDate).sort();
+        if (dates.length === 0) return;
+
+        const values = dates.map(d => byDate[d]);
+        const best = Math.max(...values);
+        const latest = values[values.length - 1];
+        const prev = values.length >= 2 ? values[values.length - 2] : null;
+        const trend = prev !== null ? (latest > prev ? '↑' : latest < prev ? '↓' : '→') : '';
+
+        const labels = dates.map(d => {
+          const dt = new Date(d);
+          return dt.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
+        });
+
+        const cardId = 'chart-' + name.replace(/\s+/g, '-').replace(/[()]/g, '');
+        const card = document.createElement('div');
+        card.className = 'ex-card ' + cat + '-accent';
+        card.innerHTML = `
+          <div class="ex-card-header">
+            <div class="ex-card-name">${name}</div>
+            <div class="ex-card-meta">${dates.length} Sessions</div>
+          </div>
+          <div class="ex-card-chart"><canvas id="${cardId}" role="img" aria-label="Progression ${name}"></canvas></div>
+          <div class="ex-card-best">Best <span>${Math.round(best)}${unit}</span> · Zuletzt <span>${Math.round(latest)}${unit}</span> ${trend}</div>
+        `;
+        grid.appendChild(card);
+
+        // Build chart after DOM insert
+        requestAnimationFrame(() => {
+          const ctx = document.getElementById(cardId);
+          if (!ctx) return;
+          const color = COLORS[cat];
+          const dim = DIM[cat];
+          chartRegistry[cardId] = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels,
+              datasets: [{
+                data: values,
+                borderColor: color,
+                backgroundColor: dim,
+                fill: true,
+                tension: 0.35,
+                pointRadius: dates.length <= 6 ? 4 : 2,
+                pointBackgroundColor: color,
+                borderWidth: 1.5,
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false }, tooltip: {
+                callbacks: { label: ctx => Math.round(ctx.parsed.y) + unit }
+              }},
+              scales: {
+                x: { grid: { display: false }, ticks: { autoSkip: true, maxTicksLimit: 5, maxRotation: 0, font: { size: 9 } } },
+                y: { beginAtZero: false, ticks: { maxTicksLimit: 4, font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.04)' } }
+              }
+            }
+          });
+        });
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
