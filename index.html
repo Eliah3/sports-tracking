@@ -4,556 +4,399 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Workout Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #0e0e0f;
-      --surface: #161618;
-      --surface2: #1e1e21;
-      --border: rgba(255,255,255,0.07);
-      --text: #f0ede8;
-      --muted: #6b6a68;
-      --push: #e8825a;
-      --pull: #5ab8e8;
-      --legs: #7de882;
-      --push-dim: rgba(232,130,90,0.12);
-      --pull-dim: rgba(90,184,232,0.12);
-      --legs-dim: rgba(125,232,130,0.12);
-      --radius: 10px;
+      --bg: #0c0c0d;
+      --s1: #141416;
+      --s2: #1b1b1e;
+      --border: rgba(255,255,255,0.06);
+      --border2: rgba(255,255,255,0.1);
+      --text: #eeebe6;
+      --muted: #5a5956;
+      --push: #e07a4f;
+      --pull: #4fa8d5;
+      --legs: #6dcc76;
+      --r: 10px;
       --font: 'DM Sans', sans-serif;
       --mono: 'DM Mono', monospace;
     }
-
-    body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      padding: 2rem 1.5rem 4rem;
-    }
-
-    header {
-      max-width: 1100px;
-      margin: 0 auto 2.5rem;
-      display: flex;
-      align-items: baseline;
-      gap: 1rem;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 1.25rem;
-    }
-
-    header h1 {
-      font-size: 1.1rem;
-      font-weight: 500;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      font-family: var(--mono);
-    }
-
-    header span {
-      font-size: 0.75rem;
-      color: var(--muted);
-      font-family: var(--mono);
-    }
-
-    .container { max-width: 1100px; margin: 0 auto; }
-
-    /* Metric row */
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-bottom: 2.5rem;
-    }
-
-    .metric {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1rem 1.2rem;
-    }
-
-    .metric-label {
-      font-size: 0.7rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      font-family: var(--mono);
-      margin-bottom: 0.4rem;
-    }
-
-    .metric-value {
-      font-size: 1.9rem;
-      font-weight: 300;
-      font-family: var(--mono);
-      line-height: 1;
-    }
-
-    .metric-sub {
-      font-size: 0.7rem;
-      color: var(--muted);
-      margin-top: 0.3rem;
-    }
-
-    /* Section headers */
-    .section-header {
-      font-size: 0.7rem;
-      font-family: var(--mono);
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--muted);
-      margin-bottom: 0.75rem;
-      margin-top: 2.5rem;
-    }
-
-    /* Consistency chart */
-    .consistency-wrap {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.25rem 1.5rem;
-      margin-bottom: 2.5rem;
-    }
-
-    .consistency-inner {
-      position: relative;
-      height: 200px;
-    }
-
-    /* Category tabs */
-    .tabs {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 1.5rem;
-      margin-top: 2.5rem;
-    }
-
-    .tab {
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      padding: 6px 16px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .tab:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
-    .tab.active-push { background: var(--push-dim); border-color: var(--push); color: var(--push); }
-    .tab.active-pull { background: var(--pull-dim); border-color: var(--pull); color: var(--pull); }
-    .tab.active-legs { background: var(--legs-dim); border-color: var(--legs); color: var(--legs); }
-
-    /* Exercise grid */
-    .ex-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 12px;
-    }
-
-    .ex-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1rem 1.2rem 1.2rem;
-    }
-
-    .ex-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 0.9rem;
-    }
-
-    .ex-card-name {
-      font-size: 0.82rem;
-      font-weight: 500;
-    }
-
-    .ex-card-meta {
-      font-size: 0.68rem;
-      color: var(--muted);
-      font-family: var(--mono);
-    }
-
-    .ex-card-chart {
-      position: relative;
-      height: 110px;
-    }
-
-    .ex-card-best {
-      margin-top: 0.6rem;
-      font-size: 0.68rem;
-      color: var(--muted);
-      font-family: var(--mono);
-    }
-
-    .ex-card-best span {
-      font-weight: 500;
-    }
-
-    .push-accent .ex-card-name { color: var(--push); }
-    .pull-accent .ex-card-name { color: var(--pull); }
-    .legs-accent .ex-card-name { color: var(--legs); }
-
-    /* Loading */
-    #loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 60vh;
-      font-family: var(--mono);
-      font-size: 0.8rem;
-      color: var(--muted);
-      letter-spacing: 0.1em;
-    }
-
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1.25rem 5rem; }
+    .hdr { max-width: 1080px; margin: 0 auto 2rem; display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+    .hdr-title { font-family: var(--mono); font-size: 0.95rem; letter-spacing: 0.12em; text-transform: uppercase; }
+    .hdr-range { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+    .wrap { max-width: 1080px; margin: 0 auto; }
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 2rem; }
+    .metric { background: var(--s1); border: 1px solid var(--border); border-radius: var(--r); padding: 1rem 1.1rem; }
+    .mlabel { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.35rem; }
+    .mval { font-family: var(--mono); font-size: 1.8rem; font-weight: 300; line-height: 1; }
+    .msub { font-size: 0.68rem; color: var(--muted); margin-top: 0.3rem; }
+    .slabel { font-family: var(--mono); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); margin: 2rem 0 0.6rem; }
+    .card { background: var(--s1); border: 1px solid var(--border); border-radius: var(--r); padding: 1.1rem 1.3rem; }
+    .cons-inner { position: relative; height: 190px; }
+    .tabs { display: flex; gap: 6px; margin: 2rem 0 1.25rem; }
+    .tab { font-family: var(--mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; padding: 5px 16px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.12s; }
+    .tab:hover { color: var(--text); border-color: var(--border2); }
+    .tab.tp { background: rgba(224,122,79,0.12); border-color: var(--push); color: var(--push); }
+    .tab.tl { background: rgba(79,168,213,0.12); border-color: var(--pull); color: var(--pull); }
+    .tab.tg { background: rgba(109,204,118,0.12); border-color: var(--legs); color: var(--legs); }
+    .exgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 12px; }
+    .excard { background: var(--s1); border: 1px solid var(--border); border-radius: var(--r); padding: 1rem 1.1rem 1.1rem; }
+    .excard-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.65rem; }
+    .excard-name { font-size: 0.82rem; font-weight: 500; margin-bottom: 0.4rem; }
+    .excard-meta { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); text-align: right; line-height: 1.5; }
+    .excard-chart { position: relative; height: 100px; }
+    .excard-foot { margin-top: 0.55rem; font-family: var(--mono); font-size: 0.65rem; color: var(--muted); display: flex; gap: 1rem; flex-wrap: wrap; }
+    .excard-foot strong { color: var(--text); font-weight: 500; }
+    .ap .excard-name { color: var(--push); }
+    .al .excard-name { color: var(--pull); }
+    .ag .excard-name { color: var(--legs); }
+    #loading { display: flex; align-items: center; justify-content: center; height: 60vh; font-family: var(--mono); font-size: 0.78rem; color: var(--muted); letter-spacing: 0.1em; }
     #app { display: none; }
-
-    @media (max-width: 600px) {
+    @media (max-width: 580px) {
       .metrics { grid-template-columns: repeat(2, 1fr); }
-      .ex-grid { grid-template-columns: 1fr; }
+      .exgrid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-  <div id="loading">Lade Workouts...</div>
-  <div id="app">
-    <header>
-      <h1>Workout</h1>
-      <span id="header-range">–</span>
-    </header>
-
-    <div class="container">
-      <div class="metrics">
-        <div class="metric">
-          <div class="metric-label">Sessions</div>
-          <div class="metric-value" id="m-sessions">–</div>
-          <div class="metric-sub">Workouts gesamt</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Streak</div>
-          <div class="metric-value" id="m-streak">–</div>
-          <div class="metric-sub">Tage am Stück</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Übungen</div>
-          <div class="metric-value" id="m-exercises">–</div>
-          <div class="metric-sub">verschiedene</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Letztes</div>
-          <div class="metric-value" id="m-last" style="font-size:1.1rem; padding-top:0.4rem;">–</div>
-          <div class="metric-sub" id="m-last-type">–</div>
-        </div>
-      </div>
-
-      <div class="section-header">Consistency – Workouts pro Woche</div>
-      <div class="consistency-wrap">
-        <div class="consistency-inner">
-          <canvas id="consistency-chart" role="img" aria-label="Balkendiagramm Workouts pro Woche aufgeteilt in Push Pull Legs"></canvas>
-        </div>
-      </div>
-
-      <div class="tabs">
-        <button class="tab active-push" data-cat="push" onclick="showCat('push')">Push</button>
-        <button class="tab" data-cat="pull" onclick="showCat('pull')">Pull</button>
-        <button class="tab" data-cat="legs" onclick="showCat('legs')">Legs</button>
-      </div>
-
-      <div class="ex-grid" id="ex-grid"></div>
+<div id="loading">Lade Workouts…</div>
+<div id="app">
+  <header class="hdr">
+    <span class="hdr-title">Workout</span>
+    <span class="hdr-range" id="hdr-range">–</span>
+  </header>
+  <div class="wrap">
+    <div class="metrics">
+      <div class="metric"><div class="mlabel">Sessions</div><div class="mval" id="m-sess">–</div><div class="msub">Workouts gesamt</div></div>
+      <div class="metric"><div class="mlabel">Streak</div><div class="mval" id="m-streak">–</div><div class="msub">Tage (Sonntag = frei)</div></div>
+      <div class="metric"><div class="mlabel">Diese Woche</div><div class="mval" id="m-week">–</div><div class="msub">Sessions</div></div>
+      <div class="metric"><div class="mlabel">Letztes</div><div class="mval" id="m-last" style="font-size:1rem;padding-top:0.5rem">–</div><div class="msub" id="m-last-type">–</div></div>
     </div>
+
+    <div class="slabel">Consistency — Sessions pro Woche</div>
+    <div class="card"><div class="cons-inner"><canvas id="c-cons" role="img" aria-label="Gestapeltes Balkendiagramm Workouts pro Woche"></canvas></div></div>
+
+    <div class="tabs">
+      <button class="tab tp" data-c="push" onclick="showCat('push')">Push</button>
+      <button class="tab"    data-c="pull" onclick="showCat('pull')">Pull</button>
+      <button class="tab"    data-c="legs" onclick="showCat('legs')">Legs</button>
+    </div>
+    <div class="exgrid" id="exgrid"></div>
   </div>
+</div>
 
-  <script>
-    // ── CSV parser ──────────────────────────────────────────────────────────
-    function parseCSV(text) {
-      const lines = text.trim().split('\n').slice(1);
-      const rows = [];
-      for (const line of lines) {
-        const cols = [];
-        let cur = '', inQ = false;
-        for (const ch of line) {
-          if (ch === '"') inQ = !inQ;
-          else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
-          else cur += ch;
-        }
-        cols.push(cur.trim());
-        const setVal = (cols[4] || '').replace(/"/g, '').trim();
-        if (setVal === 'Ruhezeit' || setVal === '') continue;
-        const exercise = (cols[3] || '').replace(/"/g, '').trim();
-        if (!exercise) continue;
-        rows.push({
-          date: (cols[0] || '').split(' ')[0],
-          workout: (cols[1] || '').replace(/"/g, '').trim().toUpperCase(),
-          exercise,
-          weight: parseFloat(cols[5]) || 0,
-          reps: parseFloat(cols[6]) || 0,
-          secs: parseFloat(cols[8]) || 0,
-        });
-      }
-      return rows;
+<script>
+/* ── Trainingsplan: Plan-Übungen → mögliche CSV-Namen ─────────────────────── */
+const PLAN = {
+  push: [
+    { id: 'liegestuetze', name: 'Liegestütze',
+      csvNames: ['Push Up','Wand-Liegestütze','Erhöhte Liegestütze'],
+      levels: ['Wand-Liegestütze','Erhöhte (Tisch)','Erhöhte (Bank)','Normale Liegestütze','Rucksack','Archer','Einarmig'] },
+    { id: 'decline', name: 'Decline / Obere Brust',
+      csvNames: ['Decline Push Ups','Decline Push-ups','Decline Liegestütze'],
+      levels: ['Normale (Basis)','Decline 30cm','Decline 50cm','Decline 70cm','Pike Push-ups','Handstandliegestütze'] },
+    { id: 'schulter', name: 'Schulter / Pike',
+      csvNames: ['Pike Push Ups','Pike Push-ups','Pike Push-Up'],
+      levels: ['Pike (flach)','Pike (Fuß erhöht)','Decline Pike','Handstand (Wand)','Handstandliegestütze','Freistehend'] },
+    { id: 'trizeps', name: 'Trizeps / Diamond',
+      csvNames: ['Diamond Push Up','Diamond Push-Up','Diamond Push-ups'],
+      levels: ['Diamond (Knien)','Diamond (normal)','Diamond (Rucksack)','Close-Grip Decline','Dips 2 Beine','Dips 1 Bein'] },
+  ],
+  pull: [
+    { id: 'ruder', name: 'Rudermaschine', isTime: true,
+      csvNames: ['Rudergerät Time','Rudergerät','Rowing','Rudergerät Zeit'],
+      levels: ['4×250m Wdst.3-4','4×250m Wdst.5','4×250m Wdst.6','4×500m Wdst.5','4×500m Wdst.7'] },
+    { id: 'klimmzug', name: 'Klimmzüge (Übergriff)',
+      csvNames: ['Pull Up','Pull-Up','Klimmzug'],
+      levels: ['Isometr. Hängen','Negative','Band-assistiert','Normale','Rucksack 5-10kg','Rucksack 15+kg','L-Sit'] },
+    { id: 'chinup', name: 'Chin-ups (Untergriff)',
+      csvNames: ['Chin Up','Chin-Up','Chinup'],
+      levels: ['Negative','Band-assistiert','Normale','Slow (3s)','Rucksack 5kg','Rucksack 15+kg'] },
+    { id: 'griffkraft', name: 'Hängen / Griffkraft', isTime: true,
+      csvNames: ['Pull Up Hang Dauer','Pull Up Hang','Farmers Carries Zeit','Hang'],
+      levels: ['Passiv (beide)','Aktiv','Einhändig','Mit Gewicht','Fingerboard'] },
+  ],
+  legs: [
+    { id: 'stepups', name: 'Step-ups / Quadrizeps',
+      csvNames: ['Step-up','Step Up','Step-Up'],
+      levels: ['Step-ups 20cm','Step-ups 40cm','Step-ups Rucksack','Bulgarian Split Squat','BSS Rucksack'] },
+    { id: 'rdl', name: 'Romanian Deadlift',
+      csvNames: ['Romanian Deadlift (Barbell)','RDL','Romanian Deadlift'],
+      levels: ['Good Morning','RDL ~5kg','RDL ~10-15kg','RDL 20+kg','Einbeiniger RDL'] },
+    { id: 'glutes', name: 'Glute Bridges / Gesäß',
+      csvNames: ['Glute Bridges','Glute Bridge','Hip Thrust'],
+      levels: ['Beidbeinig','2s Halten','Rucksack','Einbeinig','Hip Thrusts','Hip Thrusts einbeinig'] },
+  ],
+};
+
+const COLORS = { push:'#e07a4f', pull:'#4fa8d5', legs:'#6dcc76' };
+const DIM    = { push:'rgba(224,122,79,0.14)', pull:'rgba(79,168,213,0.14)', legs:'rgba(109,204,118,0.14)' };
+const ACCENT = { push:'tp', pull:'tl', legs:'tg' };
+const chartReg = {};
+
+Chart.defaults.color = '#5a5956';
+Chart.defaults.font.family = "'DM Mono', monospace";
+Chart.defaults.font.size = 10;
+
+function getCat(w) {
+  const u = w.toUpperCase();
+  if (u.includes('PUSH')) return 'push';
+  if (u.includes('PULL')) return 'pull';
+  if (u.includes('LEG'))  return 'legs';
+  return null;
+}
+
+function weekKey(dateStr) {
+  const d = new Date(dateStr);
+  const dow = d.getDay() === 0 ? 6 : d.getDay() - 1;
+  const m = new Date(d); m.setDate(d.getDate() - dow);
+  return m.toISOString().split('T')[0];
+}
+
+function isSunday(dateStr) { return new Date(dateStr).getDay() === 0; }
+
+function destroyChart(id) { if (chartReg[id]) { chartReg[id].destroy(); delete chartReg[id]; } }
+
+/* ── CSV parser ── */
+function parseCSV(text) {
+  const rows = [];
+  for (const line of text.trim().split('\n').slice(1)) {
+    const cols = [];
+    let cur = '', inQ = false;
+    for (const ch of line) {
+      if (ch === '"') inQ = !inQ;
+      else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+      else cur += ch;
     }
+    cols.push(cur.trim());
+    const setVal = (cols[4]||'').replace(/"/g,'').trim();
+    if (setVal === 'Ruhezeit' || setVal === '') continue;
+    const date = (cols[0]||'').split(' ')[0];
+    if (!date || date < '2026-04-01') continue;
+    const exercise = (cols[3]||'').replace(/"/g,'').trim();
+    if (!exercise) continue;
+    rows.push({
+      date,
+      workout: (cols[1]||'').replace(/"/g,'').trim().toUpperCase(),
+      exercise,
+      reps: parseFloat(cols[6])||0,
+      secs: parseFloat(cols[8])||0,
+    });
+  }
+  return rows;
+}
 
-    // ── Category normalizer ─────────────────────────────────────────────────
-    function getCat(workout) {
-      const w = workout.toUpperCase();
-      if (w.includes('PUSH')) return 'push';
-      if (w.includes('PULL')) return 'pull';
-      if (w.includes('LEG') || w.includes('LEGS')) return 'legs';
-      return 'other';
+/* ── Main ── */
+async function init() {
+  let text;
+  try {
+    const r = await fetch('strong_workouts.csv');
+    if (!r.ok) throw 0;
+    text = await r.text();
+  } catch {
+    document.getElementById('loading').textContent = 'Fehler: strong_workouts.csv nicht gefunden.';
+    return;
+  }
+
+  const rows = parseCSV(text);
+  const sessSet = new Set(rows.map(r => r.date+'|'+r.workout));
+  const sessions = [...sessSet].map(s => ({ date: s.split('|')[0], workout: s.split('|')[1] }));
+  const days = [...new Set(sessions.map(s => s.date))].sort();
+
+  /* Streak – Sonntage überbrücken */
+  let streak = 0;
+  if (days.length) {
+    const today = new Date().toISOString().split('T')[0];
+    const yest  = new Date(Date.now()-86400000).toISOString().split('T')[0];
+    const sat   = new Date(Date.now()-172800000).toISOString().split('T')[0];
+    const last  = days[days.length-1];
+    const active = last===today || last===yest || (isSunday(yest) && last===sat);
+    if (active) {
+      streak = 1;
+      for (let i = days.length-2; i >= 0; i--) {
+        const a = new Date(days[i+1]), b = new Date(days[i]);
+        const diff = (a-b)/86400000;
+        const gapDay = new Date(b.getTime()+86400000).toISOString().split('T')[0];
+        if (diff===1 || (diff===2 && isSunday(gapDay))) streak++;
+        else break;
+      }
     }
+  }
 
-    // ── Week key (Monday-based) ─────────────────────────────────────────────
-    function weekKey(dateStr) {
-      const d = new Date(dateStr);
-      const day = d.getDay() === 0 ? 6 : d.getDay() - 1;
-      const mon = new Date(d);
-      mon.setDate(d.getDate() - day);
-      return mon.toISOString().split('T')[0];
+  /* Diese Woche */
+  const thisWeek = weekKey(new Date().toISOString().split('T')[0]);
+  const weekSess = sessions.filter(s => weekKey(s.date)===thisWeek).length;
+  const lastSess = sessions[sessions.length-1];
+
+  if (days.length >= 2) {
+    const fmt = d => new Date(d).toLocaleDateString('de-DE',{day:'2-digit',month:'short',year:'2-digit'});
+    document.getElementById('hdr-range').textContent = fmt(days[0])+' – '+fmt(days[days.length-1]);
+  }
+
+  document.getElementById('m-sess').textContent   = sessions.length;
+  document.getElementById('m-streak').textContent = streak;
+  document.getElementById('m-week').textContent   = weekSess;
+  if (lastSess) {
+    document.getElementById('m-last').textContent      = new Date(lastSess.date).toLocaleDateString('de-DE',{day:'2-digit',month:'short'});
+    document.getElementById('m-last-type').textContent = lastSess.workout;
+  }
+
+  /* Consistency chart */
+  const weekMap = {};
+  sessions.forEach(s => {
+    const wk = weekKey(s.date);
+    if (!weekMap[wk]) weekMap[wk] = {push:0,pull:0,legs:0};
+    const cat = getCat(s.workout);
+    if (cat) weekMap[wk][cat]++;
+  });
+  const weeks = Object.keys(weekMap).sort();
+  chartReg['cons'] = new Chart(document.getElementById('c-cons'), {
+    type:'bar',
+    data:{
+      labels: weeks.map(w => new Date(w).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})),
+      datasets:[
+        {label:'Push', data:weeks.map(w=>weekMap[w].push), backgroundColor:'#e07a4f', borderRadius:3, stack:'a'},
+        {label:'Pull', data:weeks.map(w=>weekMap[w].pull), backgroundColor:'#4fa8d5', borderRadius:3, stack:'a'},
+        {label:'Legs', data:weeks.map(w=>weekMap[w].legs), backgroundColor:'#6dcc76', borderRadius:3, stack:'a'},
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true,position:'top',align:'end',labels:{boxWidth:10,boxHeight:10,useBorderRadius:true,borderRadius:2,padding:14,font:{size:10}}},
+        tooltip:{mode:'index'}
+      },
+      scales:{
+        x:{stacked:true,grid:{display:false},ticks:{autoSkip:true,maxTicksLimit:12,maxRotation:0}},
+        y:{stacked:true,beginAtZero:true,ticks:{stepSize:1},grid:{color:'rgba(255,255,255,0.04)'}}
+      }
     }
+  });
 
-    // ── Color helpers ───────────────────────────────────────────────────────
-    const COLORS = { push: '#e8825a', pull: '#5ab8e8', legs: '#7de882', other: '#888' };
-    const DIM    = { push: 'rgba(232,130,90,0.15)', pull: 'rgba(90,184,232,0.15)', legs: 'rgba(125,232,130,0.15)', other: 'rgba(136,136,136,0.15)' };
+  window._rows = rows;
+  showCat('push');
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+}
 
-    // ── Chart defaults ──────────────────────────────────────────────────────
-    Chart.defaults.color = '#6b6a68';
-    Chart.defaults.font.family = "'DM Mono', monospace";
-    Chart.defaults.font.size = 10;
+/* ── Exercise cards ── */
+function showCat(cat) {
+  document.querySelectorAll('.tab').forEach(t => {
+    t.className = 'tab';
+    if (t.dataset.c === cat) t.classList.add(ACCENT[cat]);
+  });
+  Object.keys(chartReg).forEach(id => { if (id!=='cons') destroyChart(id); });
 
-    // ── Exercise chart registry (destroy on re-render) ──────────────────────
-    const chartRegistry = {};
+  const grid = document.getElementById('exgrid');
+  grid.innerHTML = '';
+  const rows = window._rows;
+  const color = COLORS[cat];
+  const dim   = DIM[cat];
 
-    function destroyChart(id) {
-      if (chartRegistry[id]) { chartRegistry[id].destroy(); delete chartRegistry[id]; }
-    }
+  PLAN[cat].forEach(planEx => {
+    const exRows = rows.filter(r => {
+      const en = r.exercise.toLowerCase();
+      return planEx.csvNames.some(n => en === n.toLowerCase() || en.includes(n.toLowerCase()) || n.toLowerCase().includes(en));
+    });
+    if (!exRows.length) return;
 
-    // ── Main ────────────────────────────────────────────────────────────────
-    async function init() {
-      let text;
-      try {
-        const res = await fetch('strong_workouts.csv');
-        text = await res.text();
-      } catch(e) {
-        document.getElementById('loading').textContent = 'Fehler: strong_workouts.csv nicht gefunden.';
-        return;
-      }
+    const useTime = planEx.isTime || (exRows.every(r=>r.reps===0) && exRows.some(r=>r.secs>0));
+    const metric  = r => useTime ? r.secs : r.reps;
+    const unit    = useTime ? 's' : ' Wdh';
 
-      const rows = parseCSV(text);
+    /* Per date: best value + which variant was used */
+    const byDate = {};
+    exRows.forEach(r => {
+      const v = metric(r);
+      if (v <= 0) return;
+      if (!byDate[r.date] || v > byDate[r.date].val)
+        byDate[r.date] = { val: v, variant: r.exercise };
+    });
 
-      // Sessions per day (unique date+workout combos)
-      const sessionSet = new Set(rows.map(r => r.date + '|' + r.workout));
-      const sessions = [...sessionSet].map(s => ({ date: s.split('|')[0], workout: s.split('|')[1] }));
+    const dates = Object.keys(byDate).sort();
+    if (!dates.length) return;
 
-      // Metrics
-      document.getElementById('m-sessions').textContent = sessions.length;
-      document.getElementById('m-exercises').textContent = new Set(rows.map(r => r.exercise)).size;
+    const values     = dates.map(d => byDate[d].val);
+    const lastVariant= byDate[dates[dates.length-1]].variant;
+    const best       = Math.max(...values);
+    const latest     = values[values.length-1];
+    const prev       = values.length>=2 ? values[values.length-2] : null;
+    const arrow      = prev!==null ? (latest>prev?'↑':latest<prev?'↓':'→') : '';
 
-      // Streak
-      const days = [...new Set(sessions.map(s => s.date))].sort();
-      let streak = 0, maxStreak = 0, cur = 0;
-      for (let i = 0; i < days.length; i++) {
-        if (i === 0) { cur = 1; }
-        else {
-          const prev = new Date(days[i-1]), now = new Date(days[i]);
-          const diff = (now - prev) / 86400000;
-          cur = diff === 1 ? cur + 1 : 1;
-        }
-        maxStreak = Math.max(maxStreak, cur);
-      }
-      // Current streak
-      const today = new Date().toISOString().split('T')[0];
-      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-      const lastDay = days[days.length - 1];
-      if (lastDay === today || lastDay === yesterday) {
-        let cs = 1;
-        for (let i = days.length - 2; i >= 0; i--) {
-          const a = new Date(days[i+1]), b = new Date(days[i]);
-          if ((a - b) / 86400000 === 1) cs++;
-          else break;
-        }
-        streak = cs;
-      }
-      document.getElementById('m-streak').textContent = streak || maxStreak;
+    /* Level detection: fuzzy match last variant name against level list */
+    let detectedLevel = -1;
+    planEx.levels.forEach((lv, i) => {
+      const lvWords = lv.toLowerCase().split(/[\s\/\-()]+/).filter(w=>w.length>2);
+      const varLow  = lastVariant.toLowerCase();
+      if (lvWords.some(w => varLow.includes(w))) detectedLevel = i;
+    });
 
-      // Last workout
-      const lastSession = sessions[sessions.length - 1];
-      if (lastSession) {
-        const d = new Date(lastSession.date);
-        document.getElementById('m-last').textContent = d.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
-        document.getElementById('m-last-type').textContent = lastSession.workout;
-      }
+    /* Level dots */
+    const dots = planEx.levels.map((_,i) => {
+      const active = i <= Math.max(0, detectedLevel);
+      const isCur  = i === Math.max(0, detectedLevel);
+      return `<span style="display:inline-block;width:${isCur?20:active?10:6}px;height:4px;border-radius:2px;background:${active?color:'rgba(255,255,255,0.08)'};margin-right:3px;vertical-align:middle"></span>`;
+    }).join('');
 
-      // Header range
-      if (days.length >= 2) {
-        const from = new Date(days[0]).toLocaleDateString('de-DE', { month: 'short', year: '2-digit' });
-        const to   = new Date(days[days.length-1]).toLocaleDateString('de-DE', { month: 'short', year: '2-digit' });
-        document.getElementById('header-range').textContent = from + ' – ' + to;
-      }
+    const lvLabel = detectedLevel >= 0 ? `Stufe ${detectedLevel+1}/${planEx.levels.length} · ${planEx.levels[Math.max(0,detectedLevel)]}` : lastVariant;
 
-      // ── Consistency chart (stacked bars per week) ─────────────────────────
-      const weekMap = {};
-      sessions.forEach(s => {
-        const wk = weekKey(s.date);
-        if (!weekMap[wk]) weekMap[wk] = { push: 0, pull: 0, legs: 0, other: 0 };
-        weekMap[wk][getCat(s.workout)]++;
-      });
+    const cardId = 'chart-'+planEx.id;
+    const card = document.createElement('div');
+    card.className = 'excard '+(cat==='push'?'ap':cat==='pull'?'al':'ag');
+    card.innerHTML = `
+      <div class="excard-top">
+        <div>
+          <div class="excard-name">${planEx.name}</div>
+          <div style="margin-bottom:4px">${dots}</div>
+          <div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted)">${lvLabel}</div>
+        </div>
+        <div class="excard-meta">${dates.length} Sessions<br>${useTime?'Zeit (s)':'Wdh'}</div>
+      </div>
+      <div class="excard-chart"><canvas id="${cardId}" role="img" aria-label="Progression ${planEx.name}"></canvas></div>
+      <div class="excard-foot">
+        <span>Best <strong>${Math.round(best)}${unit}</strong></span>
+        <span>Zuletzt <strong>${Math.round(latest)}${unit}</strong> ${arrow}</span>
+      </div>`;
+    grid.appendChild(card);
 
-      const weeks = Object.keys(weekMap).sort();
-      const wLabels = weeks.map(w => {
-        const d = new Date(w);
-        return d.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
-      });
-
-      const cCtx = document.getElementById('consistency-chart').getContext('2d');
-      new Chart(cCtx, {
-        type: 'bar',
-        data: {
-          labels: wLabels,
-          datasets: [
-            { label: 'Push', data: weeks.map(w => weekMap[w].push), backgroundColor: '#e8825a', borderRadius: 3, stack: 'a' },
-            { label: 'Pull', data: weeks.map(w => weekMap[w].pull), backgroundColor: '#5ab8e8', borderRadius: 3, stack: 'a' },
-            { label: 'Legs', data: weeks.map(w => weekMap[w].legs), backgroundColor: '#7de882', borderRadius: 3, stack: 'a' },
-          ]
+    requestAnimationFrame(() => {
+      const ctx = document.getElementById(cardId);
+      if (!ctx) return;
+      chartReg[cardId] = new Chart(ctx, {
+        type:'line',
+        data:{
+          labels: dates.map(d => new Date(d).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})),
+          datasets:[{
+            data:values,
+            borderColor:color,
+            backgroundColor:dim,
+            fill:true,
+            tension:0.35,
+            pointRadius: dates.length<=8?3:2,
+            pointBackgroundColor:color,
+            borderWidth:1.5,
+          }]
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: true,
-              position: 'top',
-              align: 'end',
-              labels: { boxWidth: 10, boxHeight: 10, borderRadius: 3, useBorderRadius: true, padding: 16, font: { size: 10 } }
-            },
-            tooltip: { mode: 'index' }
-          },
-          scales: {
-            x: { grid: { display: false }, ticks: { autoSkip: true, maxTicksLimit: 14, maxRotation: 0 } },
-            y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.04)' } }
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>Math.round(c.parsed.y)+unit}}},
+          scales:{
+            x:{grid:{display:false},ticks:{autoSkip:true,maxTicksLimit:5,maxRotation:0,font:{size:9}}},
+            y:{beginAtZero:false,ticks:{maxTicksLimit:4,font:{size:9}},grid:{color:'rgba(255,255,255,0.04)'}}
           }
         }
       });
+    });
+  });
 
-      // ── Exercise data by category ─────────────────────────────────────────
-      window._allRows = rows;
-      showCat('push');
+  if (!grid.children.length)
+    grid.innerHTML = `<div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);padding:1.5rem 0">Noch keine ${cat.toUpperCase()} Daten ab April 2026.</div>`;
+}
 
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-    }
-
-    // ── Render exercise cards for a category ───────────────────────────────
-    function showCat(cat) {
-      // Update tabs
-      document.querySelectorAll('.tab').forEach(t => {
-        t.className = 'tab';
-        if (t.dataset.cat === cat) t.classList.add('active-' + cat);
-      });
-
-      const rows = window._allRows;
-      const catRows = rows.filter(r => getCat(r.workout) === cat);
-
-      // Group by exercise
-      const exMap = {};
-      catRows.forEach(r => {
-        if (!exMap[r.exercise]) exMap[r.exercise] = [];
-        exMap[r.exercise].push(r);
-      });
-
-      const grid = document.getElementById('ex-grid');
-      grid.innerHTML = '';
-
-      // Destroy old charts
-      Object.keys(chartRegistry).forEach(destroyChart);
-
-      const isTime = name => name.toLowerCase().includes('zeit') || name.toLowerCase().includes('time') || name.toLowerCase().includes('hang') || name.toLowerCase().includes('dauer');
-
-      Object.entries(exMap).sort((a, b) => b[1].length - a[1].length).forEach(([name, exRows]) => {
-        const useTime = isTime(name) || (exRows.every(r => r.reps === 0) && exRows.some(r => r.secs > 0));
-        const metric = r => useTime ? r.secs : r.reps;
-        const unit = useTime ? 's' : 'Wdh';
-
-        // Group by date: take max metric per date
-        const byDate = {};
-        exRows.forEach(r => {
-          const v = metric(r);
-          if (v <= 0) return;
-          if (!byDate[r.date] || v > byDate[r.date]) byDate[r.date] = v;
-        });
-
-        const dates = Object.keys(byDate).sort();
-        if (dates.length === 0) return;
-
-        const values = dates.map(d => byDate[d]);
-        const best = Math.max(...values);
-        const latest = values[values.length - 1];
-        const prev = values.length >= 2 ? values[values.length - 2] : null;
-        const trend = prev !== null ? (latest > prev ? '↑' : latest < prev ? '↓' : '→') : '';
-
-        const labels = dates.map(d => {
-          const dt = new Date(d);
-          return dt.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
-        });
-
-        const cardId = 'chart-' + name.replace(/\s+/g, '-').replace(/[()]/g, '');
-        const card = document.createElement('div');
-        card.className = 'ex-card ' + cat + '-accent';
-        card.innerHTML = `
-          <div class="ex-card-header">
-            <div class="ex-card-name">${name}</div>
-            <div class="ex-card-meta">${dates.length} Sessions</div>
-          </div>
-          <div class="ex-card-chart"><canvas id="${cardId}" role="img" aria-label="Progression ${name}"></canvas></div>
-          <div class="ex-card-best">Best <span>${Math.round(best)}${unit}</span> · Zuletzt <span>${Math.round(latest)}${unit}</span> ${trend}</div>
-        `;
-        grid.appendChild(card);
-
-        // Build chart after DOM insert
-        requestAnimationFrame(() => {
-          const ctx = document.getElementById(cardId);
-          if (!ctx) return;
-          const color = COLORS[cat];
-          const dim = DIM[cat];
-          chartRegistry[cardId] = new Chart(ctx, {
-            type: 'line',
-            data: {
-              labels,
-              datasets: [{
-                data: values,
-                borderColor: color,
-                backgroundColor: dim,
-                fill: true,
-                tension: 0.35,
-                pointRadius: dates.length <= 6 ? 4 : 2,
-                pointBackgroundColor: color,
-                borderWidth: 1.5,
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: { legend: { display: false }, tooltip: {
-                callbacks: { label: ctx => Math.round(ctx.parsed.y) + unit }
-              }},
-              scales: {
-                x: { grid: { display: false }, ticks: { autoSkip: true, maxTicksLimit: 5, maxRotation: 0, font: { size: 9 } } },
-                y: { beginAtZero: false, ticks: { maxTicksLimit: 4, font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.04)' } }
-              }
-            }
-          });
-        });
-      });
-    }
-
-    init();
-  </script>
+init();
+</script>
 </body>
 </html>
