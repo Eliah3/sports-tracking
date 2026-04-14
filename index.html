@@ -92,43 +92,31 @@
 /* ── Trainingsplan: Plan-Übungen → mögliche CSV-Namen ─────────────────────── */
 const PLAN = {
   push: [
-    { id: 'liegestuetze', name: 'Liegestütze',
-      csvNames: ['Push Up','Wand-Liegestütze','Erhöhte Liegestütze'],
-      levels: ['Wand-Liegestütze','Erhöhte (Tisch)','Erhöhte (Bank)','Normale Liegestütze','Rucksack','Archer','Einarmig'] },
-    { id: 'decline', name: 'Decline / Obere Brust',
-      csvNames: ['Decline Push Ups','Decline Push-ups','Decline Liegestütze'],
-      levels: ['Normale (Basis)','Decline 30cm','Decline 50cm','Decline 70cm','Pike Push-ups','Handstandliegestütze'] },
-    { id: 'schulter', name: 'Schulter / Pike',
-      csvNames: ['Pike Push Ups','Pike Push-ups','Pike Push-Up'],
-      levels: ['Pike (flach)','Pike (Fuß erhöht)','Decline Pike','Handstand (Wand)','Handstandliegestütze','Freistehend'] },
-    { id: 'trizeps', name: 'Trizeps / Diamond',
-      csvNames: ['Diamond Push Up','Diamond Push-Up','Diamond Push-ups'],
-      levels: ['Diamond (Knien)','Diamond (normal)','Diamond (Rucksack)','Close-Grip Decline','Dips 2 Beine','Dips 1 Bein'] },
+    { id: 'liegestuetze', name: 'Liegestütze',      csvNames: ['Push Up','Wand-Liegestütze','Erhöhte Liegestütze'] },
+    { id: 'decline',      name: 'Decline',           csvNames: ['Decline Push Ups','Decline Push-ups','Decline Liegestütze'] },
+    { id: 'schulter',     name: 'Pike / Schulter',   csvNames: ['Pike Push Ups','Pike Push-ups','Pike Push-Up'] },
+    { id: 'trizeps',      name: 'Diamond / Trizeps', csvNames: ['Diamond Push Up','Diamond Push-Up','Diamond Push-ups'] },
   ],
   pull: [
-    { id: 'ruder', name: 'Rudermaschine', isTime: true,
-      csvNames: ['Rudergerät Time','Rudergerät','Rowing','Rudergerät Zeit'],
-      levels: ['4×250m Wdst.3-4','4×250m Wdst.5','4×250m Wdst.6','4×500m Wdst.5','4×500m Wdst.7'] },
-    { id: 'klimmzug', name: 'Klimmzüge (Übergriff)',
-      csvNames: ['Pull Up','Pull-Up','Klimmzug'],
-      levels: ['Isometr. Hängen','Negative','Band-assistiert','Normale','Rucksack 5-10kg','Rucksack 15+kg','L-Sit'] },
-    { id: 'chinup', name: 'Chin-ups (Untergriff)',
-      csvNames: ['Chin Up','Chin-Up','Chinup'],
-      levels: ['Negative','Band-assistiert','Normale','Slow (3s)','Rucksack 5kg','Rucksack 15+kg'] },
-    { id: 'griffkraft', name: 'Hängen / Griffkraft', isTime: true,
-      csvNames: ['Pull Up Hang Dauer','Pull Up Hang','Farmers Carries Zeit','Hang'],
-      levels: ['Passiv (beide)','Aktiv','Einhändig','Mit Gewicht','Fingerboard'] },
+    { id: 'ruder',    name: 'Rudermaschine',         isTime: true, csvNames: ['Rudergerät Time','Rudergerät','Rowing','Rudergerät Zeit'] },
+    { id: 'klimmzug', name: 'Klimmzüge (Übergriff)',               csvNames: ['Pull Up','Pull-Up','Klimmzug'] },
+    { id: 'chinup',   name: 'Chin-ups (Untergriff)',               csvNames: ['Chin Up','Chin-Up','Chinup'] },
+    { id: 'griffkraft', name: 'Pull Up Hang', isTime: true,
+      csvNames: ['Pull Up Hang Dauer','Pull Up Hang'] },
+    { id: 'shrug', name: 'Shrug',
+      csvNames: ['Shrug (Barbell)','Shrug','Farmers Carries','Farmers Carries Zeit'] },
   ],
   legs: [
-    { id: 'stepups', name: 'Step-ups / Quadrizeps',
-      csvNames: ['Step-up','Step Up','Step-Up'],
-      levels: ['Step-ups 20cm','Step-ups 40cm','Step-ups Rucksack','Bulgarian Split Squat','BSS Rucksack'] },
+    { id: 'stepups', name: 'Step-ups',
+      csvNames: ['Step-up','Step Up','Step-Up'] },
     { id: 'rdl', name: 'Romanian Deadlift',
-      csvNames: ['Romanian Deadlift (Barbell)','RDL','Romanian Deadlift'],
-      levels: ['Good Morning','RDL ~5kg','RDL ~10-15kg','RDL 20+kg','Einbeiniger RDL'] },
-    { id: 'glutes', name: 'Glute Bridges / Gesäß',
-      csvNames: ['Glute Bridges','Glute Bridge','Hip Thrust'],
-      levels: ['Beidbeinig','2s Halten','Rucksack','Einbeinig','Hip Thrusts','Hip Thrusts einbeinig'] },
+      csvNames: ['Romanian Deadlift (Barbell)','RDL','Romanian Deadlift'] },
+    { id: 'glutes', name: 'Glute Bridges',
+      csvNames: ['Glute Bridges','Glute Bridge','Hip Thrust'] },
+    { id: 'nordic', name: 'Nordic Curls',
+      csvNames: ['Nordic Curl','Nordic Curls','Nordische Kniebeuge'] },
+    { id: 'calf', name: 'Calf Raises',
+      csvNames: ['Calf Raise','Calf Raises','Standing Calf Raise','Wade'] },
   ],
 };
 
@@ -319,40 +307,18 @@ function showCat(cat) {
     const dates = Object.keys(byDate).sort();
     if (!dates.length) return;
 
-    const values     = dates.map(d => byDate[d].val);
-    const lastVariant= byDate[dates[dates.length-1]].variant;
-    const best       = Math.max(...values);
-    const latest     = values[values.length-1];
-    const prev       = values.length>=2 ? values[values.length-2] : null;
-    const arrow      = prev!==null ? (latest>prev?'↑':latest<prev?'↓':'→') : '';
-
-    /* Level detection: fuzzy match last variant name against level list */
-    let detectedLevel = -1;
-    planEx.levels.forEach((lv, i) => {
-      const lvWords = lv.toLowerCase().split(/[\s\/\-()]+/).filter(w=>w.length>2);
-      const varLow  = lastVariant.toLowerCase();
-      if (lvWords.some(w => varLow.includes(w))) detectedLevel = i;
-    });
-
-    /* Level dots */
-    const dots = planEx.levels.map((_,i) => {
-      const active = i <= Math.max(0, detectedLevel);
-      const isCur  = i === Math.max(0, detectedLevel);
-      return `<span style="display:inline-block;width:${isCur?20:active?10:6}px;height:4px;border-radius:2px;background:${active?color:'rgba(255,255,255,0.08)'};margin-right:3px;vertical-align:middle"></span>`;
-    }).join('');
-
-    const lvLabel = detectedLevel >= 0 ? `Stufe ${detectedLevel+1}/${planEx.levels.length} · ${planEx.levels[Math.max(0,detectedLevel)]}` : lastVariant;
+    const values  = dates.map(d => byDate[d].val);
+    const best    = Math.max(...values);
+    const latest  = values[values.length-1];
+    const prev    = values.length>=2 ? values[values.length-2] : null;
+    const arrow   = prev!==null ? (latest>prev?'↑':latest<prev?'↓':'→') : '';
 
     const cardId = 'chart-'+planEx.id;
     const card = document.createElement('div');
     card.className = 'excard '+(cat==='push'?'ap':cat==='pull'?'al':'ag');
     card.innerHTML = `
       <div class="excard-top">
-        <div>
-          <div class="excard-name">${planEx.name}</div>
-          <div style="margin-bottom:4px">${dots}</div>
-          <div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted)">${lvLabel}</div>
-        </div>
+        <div class="excard-name">${planEx.name}</div>
         <div class="excard-meta">${dates.length} Sessions<br>${useTime?'Zeit (s)':'Wdh'}</div>
       </div>
       <div class="excard-chart"><canvas id="${cardId}" role="img" aria-label="Progression ${planEx.name}"></canvas></div>
