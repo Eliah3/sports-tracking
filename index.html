@@ -71,7 +71,7 @@
   <div class="wrap">
     <div class="metrics">
       <div class="metric"><div class="mlabel">Sessions</div><div class="mval" id="m-sess">–</div><div class="msub">Workouts gesamt</div></div>
-      <div class="metric"><div class="mlabel">Streak</div><div class="mval" id="m-streak">–</div><div class="msub">Tage (Sonntag = frei)</div></div>
+      <div class="metric"><div class="mlabel">Streak</div><div class="mval" id="m-streak">–</div><div class="msub">Tage am Stück</div></div>
       <div class="metric"><div class="mlabel">Diese Woche</div><div class="mval" id="m-week">–</div><div class="msub">Sessions</div></div>
       <div class="metric"><div class="mlabel">Letztes</div><div class="mval" id="m-last" style="font-size:1rem;padding-top:0.5rem">–</div><div class="msub" id="m-last-type">–</div></div>
     </div>
@@ -194,21 +194,28 @@ async function init() {
   const sessions = [...sessSet].map(s => ({ date: s.split('|')[0], workout: s.split('|')[1] }));
   const days = [...new Set(sessions.map(s => s.date))].sort();
 
-  /* Streak – Sonntage überbrücken */
+  /* Streak – Sonntag zählt als Ruhetag (+1), aber kein Training nötig.
+     Erlaubte Lücken: 1 Tag (normaler Ruhetag) ODER Sonntag wird übersprungen (diff=2, gap=Sonntag).
+     Außerdem: Sonntage in der Trainings-Tage-Liste erhalten +1 ohne Training. */
   let streak = 0;
   if (days.length) {
     const today = new Date().toISOString().split('T')[0];
     const yest  = new Date(Date.now()-86400000).toISOString().split('T')[0];
-    const sat   = new Date(Date.now()-172800000).toISOString().split('T')[0];
     const last  = days[days.length-1];
-    const active = last===today || last===yest || (isSunday(yest) && last===sat);
+    // Streak gilt als aktiv wenn heute oder gestern trainiert wurde,
+    // oder wenn gestern Sonntag war und vorgestern trainiert wurde
+    const sun2 = new Date(Date.now()-172800000).toISOString().split('T')[0];
+    const active = last===today || last===yest || (isSunday(yest) && last===sun2);
     if (active) {
-      streak = 1;
+      // Zähle Tage inkl. Sonntage als Ruhetage
+      // Iteriere rückwärts durch Trainingstage und zähle dazwischenliegende Sonntage mit
+      streak = 1 + (isSunday(today) && last!==today ? 1 : 0);
       for (let i = days.length-2; i >= 0; i--) {
         const a = new Date(days[i+1]), b = new Date(days[i]);
         const diff = (a-b)/86400000;
-        const gapDay = new Date(b.getTime()+86400000).toISOString().split('T')[0];
-        if (diff===1 || (diff===2 && isSunday(gapDay))) streak++;
+        const gapDate = new Date(b.getTime()+86400000).toISOString().split('T')[0];
+        if (diff===1) { streak++; }
+        else if (diff===2 && isSunday(gapDate)) { streak += 2; } // Trainingstag + Sonntag
         else break;
       }
     }
